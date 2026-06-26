@@ -15,7 +15,6 @@ const [loading, setLoading] = useState(false);
 const [startDate, setStartDate] = useState(new Date().toLocaleDateString());
 const [editMode, setEditMode] = useState(false);
 
-// Initialize starting prices from localStorage
 useEffect(() => {
 const saved = localStorage.getItem(‘ttmiStartPrices’);
 if (saved) {
@@ -23,10 +22,8 @@ setStartPrices(JSON.parse(saved));
 }
 }, []);
 
-// Fetch stock data using Alpha Vantage API
 const fetchStockData = async (symbol) => {
 try {
-// Replace ‘demo’ with your free API key from alphavantage.co
 const apiKey = ‘OPHB0U6WH19G8QA6’;
 const response = await fetch(
 `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}`
@@ -38,11 +35,9 @@ const result = await response.json();
     const timeSeries = result['Time Series Daily'];
     const dates = Object.keys(timeSeries).sort().reverse();
     
-    // Get last 60+ days of data
     const last60Days = dates.slice(0, 60);
     const closes = last60Days.map(date => parseFloat(timeSeries[date]['4. close']));
     
-    // Calculate 60-day moving average
     const ma60 = closes.length >= 60 
       ? (closes.reduce((a, b) => a + b, 0) / 60).toFixed(2)
       : closes.length > 0
@@ -51,7 +46,6 @@ const result = await response.json();
 
     const currentPrice = parseFloat(timeSeries[dates[0]]['4. close']).toFixed(2);
     
-    // If no starting price set, use current price
     let startPrice = startPrices[symbol];
     if (!startPrice) {
       startPrice = currentPrice;
@@ -89,7 +83,6 @@ const results = {};
 for (const stock of stocks) {
 const stockData = await fetchStockData(stock.symbol);
 if (stockData) results[stock.symbol] = stockData;
-// Rate limit: wait to avoid hitting API limits
 await new Promise(r => setTimeout(r, 200));
 }
 setData(results);
@@ -121,7 +114,6 @@ updateAllStocks();
 return (
 <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-8">
 <div className="max-w-6xl mx-auto">
-{/* Header */}
 <div className="mb-8">
 <h1 className="text-4xl font-bold text-white mb-2">Stock Picks Showdown</h1>
 <p className="text-slate-400">
@@ -130,7 +122,6 @@ Started: {startDate} | Last updated: {Object.values(data)[0]?.lastUpdated || ‘
 </div>
 
 ```
-    {/* Controls */}
     <div className="flex gap-4 mb-8">
       <button
         onClick={updateAllStocks}
@@ -156,7 +147,6 @@ Started: {startDate} | Last updated: {Object.values(data)[0]?.lastUpdated || ‘
       )}
     </div>
 
-    {/* Edit Mode */}
     {editMode && (
       <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold text-white mb-4">Edit Stock Picks</h2>
@@ -189,7 +179,6 @@ Started: {startDate} | Last updated: {Object.values(data)[0]?.lastUpdated || ‘
       </div>
     )}
 
-    {/* Stock Cards Grid */}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {stocks.map((stock, idx) => {
         const stockData = data[stock.symbol];
@@ -199,16 +188,13 @@ Started: {startDate} | Last updated: {Object.values(data)[0]?.lastUpdated || ‘
             key={idx}
             className={`border-2 rounded-lg p-6 ${stock.color} backdrop-blur`}
           >
-            {/* Stock Symbol & Picker */}
             <div className="mb-4">
               <h3 className="text-2xl font-bold text-gray-900">{stock.symbol}</h3>
               <p className="text-sm text-gray-700">{stock.picker}</p>
             </div>
 
-            {/* Data or Loading */}
             {stockData ? (
               <>
-                {/* Starting Price */}
                 <div className="mb-3 pb-3 border-b border-gray-300">
                   <p className="text-xs text-gray-700 font-medium">Starting Price (Today)</p>
                   <p className="text-lg font-semibold text-gray-900">
@@ -216,7 +202,6 @@ Started: {startDate} | Last updated: {Object.values(data)[0]?.lastUpdated || ‘
                   </p>
                 </div>
 
-                {/* Current Price */}
                 <div className="mb-4">
                   <p className="text-xs text-gray-700 font-medium">Current Price</p>
                   <p className="text-3xl font-bold text-gray-900">
@@ -234,7 +219,6 @@ Started: {startDate} | Last updated: {Object.values(data)[0]?.lastUpdated || ‘
                   </div>
                 </div>
 
-                {/* 60-Day MA */}
                 <div className="border-t border-gray-300 pt-3 mb-3">
                   <p className="text-xs text-gray-700 font-medium">60-Day Moving Avg</p>
                   <p className="text-lg font-semibold text-gray-900">
@@ -257,7 +241,6 @@ Started: {startDate} | Last updated: {Object.values(data)[0]?.lastUpdated || ‘
       })}
     </div>
 
-    {/* Leaderboard */}
     {Object.keys(data).length > 0 && (
       <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
         <h2 className="text-xl font-bold text-white mb-4">Leaderboard (% Since Start)</h2>
@@ -286,11 +269,9 @@ Started: {startDate} | Last updated: {Object.values(data)[0]?.lastUpdated || ‘
       </div>
     )}
 
-    {/* Footer */}
     <div className="mt-8 text-center text-slate-500 text-sm space-y-2">
-      <p className="font-semibold text-red-400">⚠️ API Key Required: Replace 'demo' with your Alpha Vantage key</p>
-      <p>Get free API key: <a href="https://www.alphavantage.co/api/" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">alphavantage.co/api</a> (500 calls/day)</p>
-      <p className="text-xs">Stock prices are delayed 15-20 minutes. Starting prices locked when first loaded, reload page to reset.</p>
+      <p className="font-semibold text-red-400">Stock prices are delayed 15-20 minutes</p>
+      <p className="text-xs">Starting prices locked when first loaded, reload page to reset</p>
     </div>
   </div>
 </div>
