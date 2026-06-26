@@ -87,9 +87,10 @@ export default function StockDashboard() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    updateAllStocks();
-  }, []);
+useEffect(() => {
+  updateAllStocks();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   const handleSymbolChange = (index, newSymbol) => {
     const updated = [...stocks];
